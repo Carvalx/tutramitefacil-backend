@@ -4,6 +4,8 @@ namespace App\Providers;
 
 use App\Solicitantes\Domain\Repositories\SolicitanteRepositoryInterface;
 use App\Solicitantes\Infrastructure\Persistence\EloquentSolicitanteRepository;
+use App\Solicitudes\Domain\Repositories\SolicitudRepositoryInterface;
+use App\Solicitudes\Infrastructure\Persistence\EloquentSolicitudRepository;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -22,9 +24,15 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
+        //Solicitante
         $this->app->bind(
             SolicitanteRepositoryInterface::class,
             EloquentSolicitanteRepository::class,
+        );
+        //Solicitud
+        $this->app->bind(
+            SolicitudRepositoryInterface::class,
+            EloquentSolicitudRepository::class,
         );
     }
 

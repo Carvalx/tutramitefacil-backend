@@ -20,6 +20,7 @@ RUN apt-get update && apt-get install -y \
 # - pdo_mysql: para que Eloquent hable con MySQL
 # - mbstring, xml, zip, bcmath: requeridas internamente por Laravel
 RUN docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd zip
+RUN pecl install redis && docker-php-ext-enable redis
 
 # Instalamos Composer copiando el binario oficial desde su imagen.
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer

@@ -1,6 +1,7 @@
 <?php
 
 use App\Solicitantes\Presentation\Controllers\SolicitanteController;
+use App\Solicitudes\Presentation\Controllers\SolicitudController;
 use Illuminate\Support\Facades\Route;
 
 /**
@@ -14,3 +15,6 @@ use Illuminate\Support\Facades\Route;
 
 Route::apiResource('solicitantes', SolicitanteController::class)
     ->parameters(['solicitantes' => 'solicitante']);
+
+Route::apiResource('solicitudes', SolicitudController::class)
+    ->parameters(['solicitudes' => 'solicitud']);
