@@ -1,0 +1,72 @@
+# docker-compose define varios contenedores que trabajan juntos:
+# - app: ejecuta el código PHP/Laravel (PHP-FPM)
+# - nginx: recibe las peticiones HTTP y se las pasa a 'app'
+# - mysql: la base de datos
+# - redis: usado por las colas (Horizon) y cache
+#
+# Todos comparten una red interna y pueden hablar entre ellos
+# usando el NOMBRE DEL SERVICIO como si fuera un hostname
+# (por eso en .env pondremos DB_HOST=mysql, no 127.0.0.1).
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: tutramitefacil_app
+    # 'volumes' sincroniza la carpeta del proyecto en tu máquina
+    # con /var/www dentro del contenedor. Así, cuando editas código
+    # en tu editor, el contenedor lo ve al instante (sin rebuild).
+    volumes:
+      - .:/var/www
+    depends_on:
+      - mysql
+      - redis
+    networks:
+      - tutramitefacil
+
+  nginx:
+    image: nginx:alpine
+    container_name: tutramitefacil_nginx
+    ports:
+      # Puerto 8010 en tu máquina -> 80 en el contenedor.
+      # Elegido para no chocar con RecetApp/Tattoo Obsession (8000/8001).
+      - "8010:80"
+    volumes:
+      - .:/var/www
+      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - app
+    networks:
+      - tutramitefacil
+
+  mysql:
+    image: mysql:8
+    container_name: tutramitefacil_mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: tutramitefacil
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_USER: tutramitefacil
+      MYSQL_PASSWORD: tutramitefacil
+    ports:
+      - "3307:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - tutramitefacil
+
+  redis:
+    image: redis:alpine
+    container_name: tutramitefacil_redis
+    ports:
+      - "6379:6379"
+    networks:
+      - tutramitefacil
+
+networks:
+  tutramitefacil:
+    driver: bridge
+
+volumes:
+  mysql_data:
