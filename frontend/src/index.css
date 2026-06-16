@@ -1,0 +1,18 @@
+@import "tailwindcss";
+
+/**
+ * Paleta de colores inspirada en la identidad visual de
+ * tutramitefacil.es: fondo CLARO, verde turquesa como color
+ * de marca principal, azul marino oscuro solo para titulos/texto.
+ *
+ * tf-teal: verde turquesa, color de marca (banner, botones, bordes)
+ * tf-navy: azul marino MUY oscuro, para titulos y texto principal
+ *          (NO se usa como fondo de pantalla, solo como color de texto)
+ * tf-purple: morado, acento puntual (detalles del logo, enlaces)
+ */
+@theme {
+  --color-tf-teal: #2dd9b5;
+  --color-tf-teal-dark: #1fb89a;
+  --color-tf-navy: #1a1f4d;
+  --color-tf-purple: #7c5cf0;
+}
