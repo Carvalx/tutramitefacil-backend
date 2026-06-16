@@ -2,8 +2,9 @@
 
 namespace App\Solicitantes\Infrastructure\Persistence;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 
 /**
  * Modelo Eloquent de Solicitante.
@@ -25,7 +26,7 @@ class EloquentSolicitante extends Model
      * 1. Genera un UUID al crear un registro (si no se especifica 'id').
      * 2. Le dice a Eloquent que la PK no es un entero autoincremental.
      */
-    use HasUuids;
+    use HasUuids, HasFactory;
 
     /**
      * Nombre de la tabla. Por convención Eloquent buscaría 'eloquent_solicitantes'
@@ -69,4 +70,17 @@ class EloquentSolicitante extends Model
     protected $casts = [
         'fecha_registro' => 'date',
     ];
+
+    /**
+     * Indica explícitamente qué Factory usar.
+     *
+     * Necesario porque este modelo vive en una ruta no estándar
+     * (App\Solicitantes\Infrastructure\Persistence\...), así que
+     * Laravel no puede adivinar el nombre del factory por convención.
+     */
+    protected static function newFactory()
+    {
+        return \Database\Factories\SolicitanteFactory::new();
+    }
+
 }

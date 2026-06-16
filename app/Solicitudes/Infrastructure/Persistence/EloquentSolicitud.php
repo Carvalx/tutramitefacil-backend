@@ -7,10 +7,11 @@ use App\Solicitantes\Infrastructure\Persistence\EloquentSolicitante;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class EloquentSolicitud extends Model
 {
-    use HasUuids;
+    use HasUuids, HasFactory;
 
     protected $table = 'solicitudes';
 
@@ -37,6 +38,11 @@ class EloquentSolicitud extends Model
         'fecha_resolucion' => 'date',
         'importe_estimado' => 'decimal:2',
     ];
+
+    protected static function newFactory()
+    {
+        return \Database\Factories\SolicitudFactory::new();
+    }
 
     /**
      * Relación Eloquent hacia Solicitante.
