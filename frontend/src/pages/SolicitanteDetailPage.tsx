@@ -29,6 +29,18 @@ function SolicitanteDetailPage() {
       .finally(() => setLoading(false));
   }, [id]);
 
+  const handleEliminarSolicitud = async (solicitudId: string) => {
+    const confirmado = window.confirm('¿Eliminar esta solicitud? Esta acción no se puede deshacer.');
+    if (!confirmado) return;
+
+    try {
+      await solicitudesApi.eliminar(solicitudId);
+      setSolicitudes((prev) => prev.filter((s) => s.id !== solicitudId));
+    } catch {
+      alert('No se pudo eliminar. Asegúrate de haber iniciado sesión.');
+    }
+  };
+
   if (loading) return <p className="p-6 text-gray-500">Cargando...</p>;
   if (error) return <p className="p-6 text-red-600">Error: {error}</p>;
   if (!solicitante) return <p className="p-6 text-gray-500">Solicitante no encontrado.</p>;
@@ -59,7 +71,9 @@ function SolicitanteDetailPage() {
         <h2 className="text-tf-navy font-bold text-xl">
           Solicitudes ({solicitudes.length})
         </h2>
-        <Button variant="primary" className="text-sm">+ Nueva solicitud</Button>
+        <Link to={`/solicitudes/nueva?solicitante_id=${solicitante.id}`}>
+          <Button variant="primary" className="text-sm">+ Nueva solicitud</Button>
+        </Link>
       </div>
 
       {solicitudes.length === 0 ? (
@@ -75,9 +89,21 @@ function SolicitanteDetailPage() {
               <p className="text-sm text-gray-500">
                 Solicitada el {new Date(s.fecha_solicitud).toLocaleDateString('es-ES')}
               </p>
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-gray-500 mb-3">
                 Importe estimado: {s.importe_estimado.toLocaleString('es-ES', { style: 'currency', currency: 'EUR' })}
               </p>
+              <div className="flex gap-2">
+                <Link to={`/solicitudes/${s.id}/editar`}>
+                  <Button variant="secondary" className="text-xs px-3 py-1">Editar</Button>
+                </Link>
+                <Button
+                  variant="danger"
+                  className="text-xs px-3 py-1"
+                  onClick={() => handleEliminarSolicitud(s.id)}
+                >
+                  Eliminar
+                </Button>
+              </div>
             </Card>
           ))}
         </div>

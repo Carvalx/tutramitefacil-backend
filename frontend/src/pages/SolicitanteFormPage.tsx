@@ -11,13 +11,13 @@ const COMUNIDADES = [
   'Madrid', 'Murcia', 'Navarra', 'País Vasco', 'La Rioja',
 ];
 
-/**
- * Formulario de crear/editar Solicitante.
- *
- * Si la URL tiene ':id' (ej: /solicitantes/123/editar), carga ese
- * solicitante y funciona en modo EDICION. Si no hay ':id'
- * (/solicitantes/nuevo), funciona en modo CREACION.
- */
+interface AxiosErrorShape {
+  response?: {
+    status?: number;
+    data?: { message?: string };
+  };
+}
+
 function SolicitanteFormPage() {
   const { id } = useParams<{ id: string }>();
   const isEditing = !!id;
@@ -68,8 +68,16 @@ function SolicitanteFormPage() {
         await solicitantesApi.crear(payload);
       }
       navigate('/');
-    } catch {
-      setError('No se pudo guardar el solicitante. Revisa los datos e inténtalo de nuevo.');
+    } catch (err) {
+      const axiosError = err as AxiosErrorShape;
+
+      if (axiosError.response?.status === 422) {
+        setError(axiosError.response.data?.message || 'Datos inválidos. Revisa el formulario.');
+      } else if (axiosError.response?.status === 401) {
+        setError('Tu sesión ha expirado. Inicia sesión de nuevo.');
+      } else {
+        setError('No se pudo guardar el solicitante. Inténtalo de nuevo.');
+      }
     } finally {
       setLoading(false);
     }
