@@ -63,6 +63,22 @@ services:
       - "6379:6379"
     networks:
       - tutramitefacil
+  
+  horizon:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: tutramitefacil_horizon
+    # Reutiliza la misma imagen que 'app', pero ejecuta el worker de Horizon
+    # en vez de PHP-FPM.
+    command: php artisan horizon
+    volumes:
+      - .:/var/www
+    depends_on:
+      - mysql
+      - redis
+    networks:
+      - tutramitefacil
 
 networks:
   tutramitefacil:
