@@ -1,15 +1,10 @@
 import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { solicitantesApi } from '../api/solicitantes';
 import type { Solicitante } from '../types';
 import Card from '../components/common/Card';
 import Button from '../components/common/Button';
 
-/**
- * Pantalla: Listado de Solicitantes.
- *
- * Trae los solicitantes desde la API y los muestra en tarjetas,
- * con la identidad visual de TuTramiteFacil.
- */
 function SolicitantesListPage() {
   const [solicitantes, setSolicitantes] = useState<Solicitante[]>([]);
   const [loading, setLoading] = useState(true);
@@ -44,9 +39,11 @@ function SolicitantesListPage() {
             <h2 className="font-semibold text-tf-navy mb-1">{s.nombre_completo}</h2>
             <p className="text-sm text-gray-500 mb-1">{s.email}</p>
             <p className="text-sm text-gray-500 mb-4">{s.comunidad_autonoma}</p>
-            <Button variant="secondary" className="text-sm px-3 py-1.5">
-              Ver detalle
-            </Button>
+            <Link to={`/solicitantes/${s.id}`}>
+              <Button variant="secondary" className="text-sm px-3 py-1.5">
+                Ver detalle
+              </Button>
+            </Link>
           </Card>
         ))}
       </div>
