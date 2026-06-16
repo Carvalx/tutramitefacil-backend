@@ -8,19 +8,9 @@ use App\Solicitantes\Presentation\Requests\UpdateSolicitanteRequest;
 use App\Solicitantes\Presentation\Resources\SolicitanteResource;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Routing\Controller;
+use OpenApi\Attributes as OA;
 
-/**
- * Controller de Solicitantes.
- *
- * Fíjate en lo "delgado" que es: cada método solo hace 3 cosas:
- * 1. Recibe datos ya validados (gracias a las Form Requests)
- * 2. Llama al Application Service (que llama al Repository)
- * 3. Devuelve la respuesta formateada (con el Resource)
- *
- * Toda la lógica real vive en capas inferiores (Application/Domain).
- * Esto es justo lo que se busca con Clean Architecture: el Controller
- * es solo "pegamento" entre HTTP y el negocio.
- */
+#[OA\Tag(name: 'Solicitantes', description: 'Gestión de solicitantes de ayudas sociales')]
 class SolicitanteController extends Controller
 {
     public function __construct(
@@ -28,10 +18,14 @@ class SolicitanteController extends Controller
     ) {
     }
 
-    /**
-     * GET /api/solicitantes
-     * Público (sin autenticación), según el enunciado.
-     */
+    #[OA\Get(
+        path: '/api/solicitantes',
+        summary: 'Listar todos los solicitantes',
+        tags: ['Solicitantes'],
+        responses: [
+            new OA\Response(response: 200, description: 'Listado de solicitantes'),
+        ]
+    )]
     public function index(): JsonResponse
     {
         $solicitantes = $this->service->listar();
@@ -40,10 +34,18 @@ class SolicitanteController extends Controller
             ->response();
     }
 
-    /**
-     * GET /api/solicitantes/{solicitante}
-     * Público.
-     */
+    #[OA\Get(
+        path: '/api/solicitantes/{solicitante}',
+        summary: 'Obtener un solicitante por su UUID',
+        tags: ['Solicitantes'],
+        parameters: [
+            new OA\Parameter(name: 'solicitante', in: 'path', required: true, schema: new OA\Schema(type: 'string')),
+        ],
+        responses: [
+            new OA\Response(response: 200, description: 'Solicitante encontrado'),
+            new OA\Response(response: 404, description: 'No encontrado'),
+        ]
+    )]
     public function show(string $solicitante): JsonResponse
     {
         $entity = $this->service->buscar($solicitante);
@@ -55,10 +57,31 @@ class SolicitanteController extends Controller
         return (new SolicitanteResource($entity))->response();
     }
 
-    /**
-     * POST /api/solicitantes
-     * Requiere JWT (se configurará en las rutas).
-     */
+    #[OA\Post(
+        path: '/api/solicitantes',
+        summary: 'Crear un nuevo solicitante',
+        security: [['bearerAuth' => []]],
+        tags: ['Solicitantes'],
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(
+                required: ['nombre', 'apellidos', 'email', 'telefono', 'comunidad_autonoma', 'fecha_registro'],
+                properties: [
+                    new OA\Property(property: 'nombre', type: 'string', example: 'Carlos'),
+                    new OA\Property(property: 'apellidos', type: 'string', example: 'Macero'),
+                    new OA\Property(property: 'email', type: 'string', example: 'carlos@example.com'),
+                    new OA\Property(property: 'telefono', type: 'string', example: '600000000'),
+                    new OA\Property(property: 'comunidad_autonoma', type: 'string', example: 'Comunidad Valenciana'),
+                    new OA\Property(property: 'fecha_registro', type: 'string', format: 'date', example: '2026-06-15'),
+                ]
+            )
+        ),
+        responses: [
+            new OA\Response(response: 201, description: 'Solicitante creado'),
+            new OA\Response(response: 401, description: 'No autenticado'),
+            new OA\Response(response: 422, description: 'Error de validación'),
+        ]
+    )]
     public function store(StoreSolicitanteRequest $request): JsonResponse
     {
         $entity = $this->service->crear($request->validated());
@@ -68,10 +91,20 @@ class SolicitanteController extends Controller
             ->setStatusCode(201);
     }
 
-    /**
-     * PUT /api/solicitantes/{solicitante}
-     * Requiere JWT.
-     */
+    #[OA\Put(
+        path: '/api/solicitantes/{solicitante}',
+        summary: 'Actualizar un solicitante existente',
+        security: [['bearerAuth' => []]],
+        tags: ['Solicitantes'],
+        parameters: [
+            new OA\Parameter(name: 'solicitante', in: 'path', required: true, schema: new OA\Schema(type: 'string')),
+        ],
+        responses: [
+            new OA\Response(response: 200, description: 'Solicitante actualizado'),
+            new OA\Response(response: 401, description: 'No autenticado'),
+            new OA\Response(response: 404, description: 'No encontrado'),
+        ]
+    )]
     public function update(UpdateSolicitanteRequest $request, string $solicitante): JsonResponse
     {
         $entity = $this->service->actualizar($solicitante, $request->validated());
@@ -83,10 +116,20 @@ class SolicitanteController extends Controller
         return (new SolicitanteResource($entity))->response();
     }
 
-    /**
-     * DELETE /api/solicitantes/{solicitante}
-     * Requiere JWT.
-     */
+    #[OA\Delete(
+        path: '/api/solicitantes/{solicitante}',
+        summary: 'Eliminar un solicitante',
+        security: [['bearerAuth' => []]],
+        tags: ['Solicitantes'],
+        parameters: [
+            new OA\Parameter(name: 'solicitante', in: 'path', required: true, schema: new OA\Schema(type: 'string')),
+        ],
+        responses: [
+            new OA\Response(response: 204, description: 'Eliminado correctamente'),
+            new OA\Response(response: 401, description: 'No autenticado'),
+            new OA\Response(response: 404, description: 'No encontrado'),
+        ]
+    )]
     public function destroy(string $solicitante): JsonResponse
     {
         $eliminado = $this->service->eliminar($solicitante);

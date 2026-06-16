@@ -8,20 +8,30 @@ use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
+use OpenApi\Attributes as OA;
 
-/**
- * AuthController: login y registro para obtener tokens JWT.
- *
- * No forma parte de Solicitantes/Solicitudes (los dominios de negocio),
- * es infraestructura transversal de autenticación. Por eso vive en
- * su propio "módulo" Auth.
- */
+#[OA\Tag(name: 'Auth', description: 'Registro, login y gestión de sesión vía JWT')]
 class AuthController extends Controller
 {
-    /**
-     * POST /api/auth/register
-     * Crea un usuario y devuelve su token JWT.
-     */
+    #[OA\Post(
+        path: '/api/auth/register',
+        summary: 'Registrar un nuevo usuario',
+        tags: ['Auth'],
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(
+                required: ['name', 'email', 'password'],
+                properties: [
+                    new OA\Property(property: 'name', type: 'string', example: 'Carlos'),
+                    new OA\Property(property: 'email', type: 'string', example: 'carlos@test.com'),
+                    new OA\Property(property: 'password', type: 'string', example: 'password123'),
+                ]
+            )
+        ),
+        responses: [
+            new OA\Response(response: 201, description: 'Usuario creado, devuelve access_token'),
+        ]
+    )]
     public function register(Request $request): JsonResponse
     {
         $validated = Validator::make($request->all(), [
@@ -45,16 +55,29 @@ class AuthController extends Controller
         ], 201);
     }
 
-    /**
-     * POST /api/auth/login
-     * Verifica credenciales y devuelve un token JWT.
-     */
+    #[OA\Post(
+        path: '/api/auth/login',
+        summary: 'Iniciar sesión y obtener token JWT',
+        tags: ['Auth'],
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(
+                required: ['email', 'password'],
+                properties: [
+                    new OA\Property(property: 'email', type: 'string', example: 'carlos@test.com'),
+                    new OA\Property(property: 'password', type: 'string', example: 'password123'),
+                ]
+            )
+        ),
+        responses: [
+            new OA\Response(response: 200, description: 'Login correcto, devuelve access_token'),
+            new OA\Response(response: 401, description: 'Credenciales inválidas'),
+        ]
+    )]
     public function login(Request $request): JsonResponse
     {
         $credentials = $request->only('email', 'password');
 
-        // auth('api')->attempt() valida credenciales contra la tabla 'users'
-        // y, si son correctas, genera un token JWT.
         $token = auth('api')->attempt($credentials);
 
         if (! $token) {
@@ -67,10 +90,15 @@ class AuthController extends Controller
         ]);
     }
 
-    /**
-     * POST /api/auth/logout
-     * Invalida el token actual.
-     */
+    #[OA\Post(
+        path: '/api/auth/logout',
+        summary: 'Cerrar sesión (invalida el token actual)',
+        security: [['bearerAuth' => []]],
+        tags: ['Auth'],
+        responses: [
+            new OA\Response(response: 200, description: 'Sesión cerrada correctamente'),
+        ]
+    )]
     public function logout(): JsonResponse
     {
         auth('api')->logout();
@@ -78,10 +106,15 @@ class AuthController extends Controller
         return response()->json(['message' => 'Sesión cerrada correctamente.']);
     }
 
-    /**
-     * GET /api/auth/me
-     * Devuelve el usuario autenticado (útil para el frontend).
-     */
+    #[OA\Get(
+        path: '/api/auth/me',
+        summary: 'Obtener el usuario autenticado',
+        security: [['bearerAuth' => []]],
+        tags: ['Auth'],
+        responses: [
+            new OA\Response(response: 200, description: 'Datos del usuario autenticado'),
+        ]
+    )]
     public function me(): JsonResponse
     {
         return response()->json(auth('api')->user());
