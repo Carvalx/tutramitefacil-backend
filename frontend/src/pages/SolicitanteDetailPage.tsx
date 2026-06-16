@@ -23,9 +23,6 @@ function SolicitanteDetailPage() {
     ])
       .then(([solicitanteData, todasLasSolicitudes]) => {
         setSolicitante(solicitanteData);
-        // Filtramos en el cliente las solicitudes de este solicitante,
-        // ya que la API no expone (todavia) un endpoint dedicado de
-        // filtrado por solicitante_id.
         setSolicitudes(todasLasSolicitudes.filter((s) => s.solicitante_id === id));
       })
       .catch((err) => setError(err.message))
@@ -43,12 +40,19 @@ function SolicitanteDetailPage() {
       </Link>
 
       <Card className="mb-6">
-        <h1 className="text-tf-navy font-bold text-2xl mb-2">{solicitante.nombre_completo}</h1>
-        <p className="text-gray-500">{solicitante.email} — {solicitante.telefono}</p>
-        <p className="text-gray-500">{solicitante.comunidad_autonoma}</p>
-        <p className="text-sm text-gray-400 mt-2">
-          Registrado el {new Date(solicitante.fecha_registro).toLocaleDateString('es-ES')}
-        </p>
+        <div className="flex justify-between items-start">
+          <div>
+            <h1 className="text-tf-navy font-bold text-2xl mb-2">{solicitante.nombre_completo}</h1>
+            <p className="text-gray-500">{solicitante.email} — {solicitante.telefono}</p>
+            <p className="text-gray-500">{solicitante.comunidad_autonoma}</p>
+            <p className="text-sm text-gray-400 mt-2">
+              Registrado el {new Date(solicitante.fecha_registro).toLocaleDateString('es-ES')}
+            </p>
+          </div>
+          <Link to={`/solicitantes/${solicitante.id}/editar`}>
+            <Button variant="secondary" className="text-sm px-3 py-1.5">Editar</Button>
+          </Link>
+        </div>
       </Card>
 
       <div className="flex justify-between items-center mb-4">

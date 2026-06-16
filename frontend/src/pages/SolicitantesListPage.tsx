@@ -30,7 +30,9 @@ function SolicitantesListPage() {
     <div className="bg-gray-50 min-h-screen p-6">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-tf-navy font-bold text-2xl">Solicitantes</h1>
-        <Button variant="primary">+ Nuevo solicitante</Button>
+        <Link to="/solicitantes/nuevo">
+          <Button variant="primary">+ Nuevo solicitante</Button>
+        </Link>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
