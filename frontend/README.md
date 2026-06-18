@@ -64,7 +64,7 @@ El backend estará disponible en `http://localhost:8010`
 
 ## Frontend (desarrollo local)
 
-```bash
+```bash o cmd
 cd frontend
 npm install
 npm run dev
