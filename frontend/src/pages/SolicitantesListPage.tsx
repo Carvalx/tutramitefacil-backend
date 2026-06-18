@@ -1,15 +1,17 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { solicitantesApi } from '../api/solicitantes';
 import type { Solicitante } from '../types';
 import Card from '../components/common/Card';
 import Button from '../components/common/Button';
+import KebabMenu from '../components/common/KebabMenu';
 
 function SolicitantesListPage() {
   const [solicitantes, setSolicitantes] = useState<Solicitante[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [busqueda, setBusqueda] = useState('');
+  const navigate = useNavigate();
 
   useEffect(() => {
     solicitantesApi
@@ -63,24 +65,18 @@ function SolicitantesListPage() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {solicitantesFiltrados.map((s) => (
-          <Card key={s.id}>
-            <h2 className="font-semibold text-tf-navy mb-1">{s.nombre_completo}</h2>
-            <p className="text-sm text-gray-500 mb-1">{s.email}</p>
-            <p className="text-sm text-gray-500 mb-4">{s.comunidad_autonoma}</p>
-            <div className="flex gap-2">
-              <Link to={`/solicitantes/${s.id}`}>
-                <Button variant="secondary" className="text-sm px-3 py-1.5">
-                  Ver detalle
-                </Button>
-              </Link>
-              <Button
-                variant="danger"
-                className="text-sm px-3 py-1.5"
-                onClick={() => handleEliminar(s.id, s.nombre_completo)}
-              >
-                Eliminar
-              </Button>
+          <Card key={s.id} className="relative">
+            <div className="absolute top-3 right-3">
+              <KebabMenu
+                options={[
+                  { label: 'Ver detalle', onClick: () => navigate(`/solicitantes/${s.id}`) },
+                  { label: 'Eliminar', onClick: () => handleEliminar(s.id, s.nombre_completo), danger: true },
+                ]}
+              />
             </div>
+            <h2 className="font-semibold text-tf-navy mb-1 pr-8">{s.nombre_completo}</h2>
+            <p className="text-sm text-gray-500 mb-1">{s.email}</p>
+            <p className="text-sm text-gray-500">{s.comunidad_autonoma}</p>
           </Card>
         ))}
       </div>

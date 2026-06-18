@@ -10,11 +10,8 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 
 /**
- * AuthController: login y registro para obtener tokens JWT.
- *
- * No forma parte de Solicitantes/Solicitudes (los dominios de negocio),
- * es infraestructura transversal de autenticación. Por eso vive en
- * su propio "módulo" Auth.
+ * Gestiona login, registro y logout con JWT (tymondesigns/jwt-auth).
+ * Se eligió JWT sobre Sanctum porque la API es stateless y puede ser consumida por clientes externos al dominio.
  */
 class AuthController extends Controller
 {
@@ -53,8 +50,6 @@ class AuthController extends Controller
     {
         $credentials = $request->only('email', 'password');
 
-        // auth('api')->attempt() valida credenciales contra la tabla 'users'
-        // y, si son correctas, genera un token JWT.
         $token = auth('api')->attempt($credentials);
 
         if (! $token) {

@@ -64,13 +64,8 @@ class EloquentSolicitudRepository implements SolicitudRepositoryInterface
     }
 
     /**
-     * Traduce EloquentSolicitud -> Solicitud (Domain Entity).
-     *
-     * Aquí el string de la BD ('Alquiler', 'Pendiente', etc.) se
-     * convierte en el enum de PHP correspondiente, usando
-     * TipoAyuda::from() / Estado::from(). Si el valor en BD no
-     * coincidiera con ningún "case" del enum, esto lanzaría
-     * un ValueError -> es una validación de integridad "gratis".
+     * Punto de cruce Infrastructure → Domain: convierte el modelo Eloquent en una Entity pura.
+     * TipoAyuda::from() / Estado::from() lanzan ValueError si el valor en BD no coincide con ningún case del enum, actuando como validación de integridad gratuita.
      */
     private function toEntity(EloquentSolicitud $model): Solicitud
     {

@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { solicitantesApi } from '../api/solicitantes';
 import { solicitudesApi } from '../api/solicitudes';
 import type { Solicitante, Solicitud } from '../types';
 import Card from '../components/common/Card';
 import Badge from '../components/common/Badge';
 import Button from '../components/common/Button';
+import KebabMenu from '../components/common/KebabMenu';
 
 function SolicitanteDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -13,6 +14,7 @@ function SolicitanteDetailPage() {
   const [solicitudes, setSolicitudes] = useState<Solicitud[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (!id) return;
@@ -84,26 +86,22 @@ function SolicitanteDetailPage() {
             <Card key={s.id}>
               <div className="flex justify-between items-start mb-2">
                 <span className="font-semibold text-tf-navy">{s.tipo_ayuda_label}</span>
-                <Badge estado={s.estado} label={s.estado_label} />
+                <div className="flex items-center gap-2">
+                  <Badge estado={s.estado} label={s.estado_label} />
+                  <KebabMenu
+                    options={[
+                      { label: 'Editar', onClick: () => navigate(`/solicitudes/${s.id}/editar`) },
+                      { label: 'Eliminar', onClick: () => handleEliminarSolicitud(s.id), danger: true },
+                    ]}
+                  />
+                </div>
               </div>
               <p className="text-sm text-gray-500">
                 Solicitada el {new Date(s.fecha_solicitud).toLocaleDateString('es-ES')}
               </p>
-              <p className="text-sm text-gray-500 mb-3">
+              <p className="text-sm text-gray-500">
                 Importe estimado: {s.importe_estimado.toLocaleString('es-ES', { style: 'currency', currency: 'EUR' })}
               </p>
-              <div className="flex gap-2">
-                <Link to={`/solicitudes/${s.id}/editar`}>
-                  <Button variant="secondary" className="text-xs px-3 py-1">Editar</Button>
-                </Link>
-                <Button
-                  variant="danger"
-                  className="text-xs px-3 py-1"
-                  onClick={() => handleEliminarSolicitud(s.id)}
-                >
-                  Eliminar
-                </Button>
-              </div>
             </Card>
           ))}
         </div>

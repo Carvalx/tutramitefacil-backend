@@ -10,16 +10,8 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Routing\Controller;
 
 /**
- * Controller de Solicitantes.
- *
- * Fíjate en lo "delgado" que es: cada método solo hace 3 cosas:
- * 1. Recibe datos ya validados (gracias a las Form Requests)
- * 2. Llama al Application Service (que llama al Repository)
- * 3. Devuelve la respuesta formateada (con el Resource)
- *
- * Toda la lógica real vive en capas inferiores (Application/Domain).
- * Esto es justo lo que se busca con Clean Architecture: el Controller
- * es solo "pegamento" entre HTTP y el negocio.
+ * Thin controller de Solicitantes: valida → llama al Service → devuelve Resource.
+ * POST/PUT/DELETE requieren JWT (middleware configurado en routes/api.php).
  */
 class SolicitanteController extends Controller
 {

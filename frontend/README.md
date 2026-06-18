@@ -4,6 +4,13 @@ API REST + SPA React para gestión de solicitantes y solicitudes de ayudas socia
 
 ---
 
+## Credenciales de demo
+
+Email: demo@tutramitefacil.com
+Contraseña: demo1234
+
+---
+
 ## Stack
 
 **Backend:** Laravel 11, PHP 8.4, MySQL 8, Redis, Laravel Horizon, JWT (`php-open-source-saver/jwt-auth`), Swagger/OpenAPI (`l5-swagger`), Pest
