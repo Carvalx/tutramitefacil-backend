@@ -18,6 +18,7 @@
                     "Auth"
                 ],
                 "summary": "Registrar un nuevo usuario",
+                "description": "POST /api/auth/register\nCrea un usuario y devuelve su token JWT.",
                 "operationId": "bcf74df7bb7d038225880aee509dfebc",
                 "requestBody": {
                     "required": true,
@@ -32,15 +33,17 @@
                                 "properties": {
                                     "name": {
                                         "type": "string",
-                                        "example": "Carlos"
+                                        "example": "Carlos Macero"
                                     },
                                     "email": {
                                         "type": "string",
-                                        "example": "carlos@test.com"
+                                        "format": "email",
+                                        "example": "carlos@example.com"
                                     },
                                     "password": {
                                         "type": "string",
-                                        "example": "password123"
+                                        "example": "secret123",
+                                        "minLength": 6
                                     }
                                 },
                                 "type": "object"
@@ -50,7 +53,10 @@
                 },
                 "responses": {
                     "201": {
-                        "description": "Usuario creado, devuelve access_token"
+                        "description": "Usuario creado; devuelve access_token y datos del usuario"
+                    },
+                    "422": {
+                        "description": "Error de validación"
                     }
                 }
             }
@@ -60,7 +66,8 @@
                 "tags": [
                     "Auth"
                 ],
-                "summary": "Iniciar sesión y obtener token JWT",
+                "summary": "Iniciar sesión",
+                "description": "POST /api/auth/login\nVerifica credenciales y devuelve un token JWT.",
                 "operationId": "ce6088c43b35a3008d6daa5475812c9f",
                 "requestBody": {
                     "required": true,
@@ -74,11 +81,12 @@
                                 "properties": {
                                     "email": {
                                         "type": "string",
-                                        "example": "carlos@test.com"
+                                        "format": "email",
+                                        "example": "demo@tutramitefacil.com"
                                     },
                                     "password": {
                                         "type": "string",
-                                        "example": "password123"
+                                        "example": "demo1234"
                                     }
                                 },
                                 "type": "object"
@@ -88,7 +96,7 @@
                 },
                 "responses": {
                     "200": {
-                        "description": "Login correcto, devuelve access_token"
+                        "description": "Login exitoso; devuelve access_token"
                     },
                     "401": {
                         "description": "Credenciales inválidas"
@@ -101,11 +109,15 @@
                 "tags": [
                     "Auth"
                 ],
-                "summary": "Cerrar sesión (invalida el token actual)",
+                "summary": "Cerrar sesión (invalida el token JWT)",
+                "description": "POST /api/auth/logout\nInvalida el token actual.",
                 "operationId": "176013de7f989f3658907372c4d7c8ea",
                 "responses": {
                     "200": {
                         "description": "Sesión cerrada correctamente"
+                    },
+                    "401": {
+                        "description": "No autenticado"
                     }
                 },
                 "security": [
@@ -120,11 +132,15 @@
                 "tags": [
                     "Auth"
                 ],
-                "summary": "Obtener el usuario autenticado",
+                "summary": "Obtener datos del usuario autenticado",
+                "description": "GET /api/auth/me\nDevuelve el usuario autenticado (útil para el frontend).",
                 "operationId": "cf09cdc2ad8af937c13d88187eed2c62",
                 "responses": {
                     "200": {
                         "description": "Datos del usuario autenticado"
+                    },
+                    "401": {
+                        "description": "No autenticado"
                     }
                 },
                 "security": [
@@ -140,10 +156,11 @@
                     "Solicitantes"
                 ],
                 "summary": "Listar todos los solicitantes",
+                "description": "GET /api/solicitantes\nPúblico (sin autenticación), según el enunciado.",
                 "operationId": "313d91180355d1417ae35759a4ed1711",
                 "responses": {
                     "200": {
-                        "description": "Listado de solicitantes"
+                        "description": "Lista de solicitantes"
                     }
                 }
             },
@@ -152,6 +169,7 @@
                     "Solicitantes"
                 ],
                 "summary": "Crear un nuevo solicitante",
+                "description": "POST /api/solicitantes\nRequiere JWT (se configurará en las rutas).",
                 "operationId": "765cc3a5cf6beda0ab59a4a62a8214e4",
                 "requestBody": {
                     "required": true,
@@ -173,10 +191,11 @@
                                     },
                                     "apellidos": {
                                         "type": "string",
-                                        "example": "Macero"
+                                        "example": "Macero Delgado"
                                     },
                                     "email": {
                                         "type": "string",
+                                        "format": "email",
                                         "example": "carlos@example.com"
                                     },
                                     "telefono": {
@@ -221,7 +240,8 @@
                 "tags": [
                     "Solicitantes"
                 ],
-                "summary": "Obtener un solicitante por su UUID",
+                "summary": "Ver detalle de un solicitante",
+                "description": "GET /api/solicitantes/{solicitante}\nPúblico.",
                 "operationId": "40dd1d9b0efaf7c641679f6b92408958",
                 "parameters": [
                     {
@@ -229,13 +249,14 @@
                         "in": "path",
                         "required": true,
                         "schema": {
-                            "type": "string"
+                            "type": "string",
+                            "format": "uuid"
                         }
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "Solicitante encontrado"
+                        "description": "Datos del solicitante"
                     },
                     "404": {
                         "description": "No encontrado"
@@ -246,7 +267,8 @@
                 "tags": [
                     "Solicitantes"
                 ],
-                "summary": "Actualizar un solicitante existente",
+                "summary": "Actualizar un solicitante",
+                "description": "PUT /api/solicitantes/{solicitante}\nRequiere JWT.",
                 "operationId": "d7a77d14947c526d085cf5314e87fe18",
                 "parameters": [
                     {
@@ -254,10 +276,48 @@
                         "in": "path",
                         "required": true,
                         "schema": {
-                            "type": "string"
+                            "type": "string",
+                            "format": "uuid"
                         }
                     }
                 ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "nombre": {
+                                        "type": "string",
+                                        "example": "Carlos"
+                                    },
+                                    "apellidos": {
+                                        "type": "string",
+                                        "example": "Macero Delgado"
+                                    },
+                                    "email": {
+                                        "type": "string",
+                                        "format": "email",
+                                        "example": "carlos@example.com"
+                                    },
+                                    "telefono": {
+                                        "type": "string",
+                                        "example": "600000000"
+                                    },
+                                    "comunidad_autonoma": {
+                                        "type": "string",
+                                        "example": "Madrid"
+                                    },
+                                    "fecha_registro": {
+                                        "type": "string",
+                                        "format": "date",
+                                        "example": "2026-06-15"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
                 "responses": {
                     "200": {
                         "description": "Solicitante actualizado"
@@ -280,6 +340,7 @@
                     "Solicitantes"
                 ],
                 "summary": "Eliminar un solicitante",
+                "description": "DELETE /api/solicitantes/{solicitante}\nRequiere JWT.",
                 "operationId": "6f19539874ca2eef321b36ecaf7f15c2",
                 "parameters": [
                     {
@@ -287,7 +348,8 @@
                         "in": "path",
                         "required": true,
                         "schema": {
-                            "type": "string"
+                            "type": "string",
+                            "format": "uuid"
                         }
                     }
                 ],
@@ -315,10 +377,11 @@
                     "Solicitudes"
                 ],
                 "summary": "Listar todas las solicitudes",
+                "description": "GET /api/solicitudes — público.",
                 "operationId": "af2fa1a2817177309b1fff464a0c6b27",
                 "responses": {
                     "200": {
-                        "description": "Listado de solicitudes"
+                        "description": "Lista de solicitudes"
                     }
                 }
             },
@@ -326,7 +389,8 @@
                 "tags": [
                     "Solicitudes"
                 ],
-                "summary": "Crear una nueva solicitud (encola Job de procesamiento)",
+                "summary": "Crear una nueva solicitud",
+                "description": "Al crear la solicitud se encola ProcesarSolicitudJob en Horizon para procesamiento asíncrono.",
                 "operationId": "f322569936bf9baef1864569414a2395",
                 "requestBody": {
                     "required": true,
@@ -342,10 +406,12 @@
                                 "properties": {
                                     "solicitante_id": {
                                         "type": "string",
-                                        "format": "uuid"
+                                        "format": "uuid",
+                                        "example": "uuid-del-solicitante"
                                     },
                                     "tipo_ayuda": {
                                         "type": "string",
+                                        "example": "Alquiler",
                                         "enum": [
                                             "Alquiler",
                                             "ChequeBebe",
@@ -361,15 +427,17 @@
                                     "fecha_resolucion": {
                                         "type": "string",
                                         "format": "date",
+                                        "example": null,
                                         "nullable": true
                                     },
                                     "importe_estimado": {
                                         "type": "number",
                                         "format": "float",
-                                        "example": 1200.5
+                                        "example": 500
                                     },
                                     "estado": {
                                         "type": "string",
+                                        "example": "Pendiente",
                                         "enum": [
                                             "Pendiente",
                                             "EnRevision",
@@ -406,7 +474,8 @@
                 "tags": [
                     "Solicitudes"
                 ],
-                "summary": "Obtener una solicitud por su UUID",
+                "summary": "Ver detalle de una solicitud",
+                "description": "GET /api/solicitudes/{solicitud} — público.",
                 "operationId": "93ac7390bbeb5dcebfac87026a2527c6",
                 "parameters": [
                     {
@@ -414,13 +483,14 @@
                         "in": "path",
                         "required": true,
                         "schema": {
-                            "type": "string"
+                            "type": "string",
+                            "format": "uuid"
                         }
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "Solicitud encontrada"
+                        "description": "Datos de la solicitud"
                     },
                     "404": {
                         "description": "No encontrada"
@@ -431,7 +501,8 @@
                 "tags": [
                     "Solicitudes"
                 ],
-                "summary": "Actualizar una solicitud (encola Job si cambia el estado)",
+                "summary": "Actualizar una solicitud",
+                "description": "Si el campo estado cambia, se encola ProcesarSolicitudJob para notificar el nuevo estado.",
                 "operationId": "2546a9f29f26e7e6b22138da3775ffb2",
                 "parameters": [
                     {
@@ -439,10 +510,57 @@
                         "in": "path",
                         "required": true,
                         "schema": {
-                            "type": "string"
+                            "type": "string",
+                            "format": "uuid"
                         }
                     }
                 ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "solicitante_id": {
+                                        "type": "string",
+                                        "format": "uuid"
+                                    },
+                                    "tipo_ayuda": {
+                                        "type": "string",
+                                        "enum": [
+                                            "Alquiler",
+                                            "ChequeBebe",
+                                            "IngresoMinimoVital",
+                                            "BonoCulturalJoven"
+                                        ]
+                                    },
+                                    "fecha_solicitud": {
+                                        "type": "string",
+                                        "format": "date"
+                                    },
+                                    "fecha_resolucion": {
+                                        "type": "string",
+                                        "format": "date",
+                                        "nullable": true
+                                    },
+                                    "importe_estimado": {
+                                        "type": "number",
+                                        "format": "float"
+                                    },
+                                    "estado": {
+                                        "type": "string",
+                                        "enum": [
+                                            "Pendiente",
+                                            "EnRevision",
+                                            "Concedida",
+                                            "Denegada"
+                                        ]
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
                 "responses": {
                     "200": {
                         "description": "Solicitud actualizada"
@@ -465,6 +583,7 @@
                     "Solicitudes"
                 ],
                 "summary": "Eliminar una solicitud",
+                "description": "DELETE /api/solicitudes/{solicitud} — requiere JWT.",
                 "operationId": "428f2a256038f899e6864069bf9f029d",
                 "parameters": [
                     {
@@ -472,7 +591,8 @@
                         "in": "path",
                         "required": true,
                         "schema": {
-                            "type": "string"
+                            "type": "string",
+                            "format": "uuid"
                         }
                     }
                 ],
@@ -507,15 +627,15 @@
     "tags": [
         {
             "name": "Auth",
-            "description": "Registro, login y gestión de sesión vía JWT"
+            "description": "Auth"
         },
         {
             "name": "Solicitantes",
-            "description": "Gestión de solicitantes de ayudas sociales"
+            "description": "Solicitantes"
         },
         {
             "name": "Solicitudes",
-            "description": "Gestión de solicitudes de ayudas sociales"
+            "description": "Solicitudes"
         }
     ]
 }
