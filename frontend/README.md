@@ -1,13 +1,15 @@
-# TuTramiteFacil — Prueba Técnica
+# TuTrámiteFácil — Prueba Técnica
 
-API REST + SPA React para gestión de solicitantes y solicitudes de ayudas sociales, desarrollada con **Laravel 11 (DDD + Clean Architecture)** y **React + Vite + TypeScript + Tailwind v4**.
+API REST + SPA React para la gestión de solicitantes y solicitudes de ayudas sociales. El backend está en Laravel 11 con DDD + Clean Architecture, y el frontend en React 19 con Vite y Tailwind v4.
+
+DDD en Laravel no es lo habitual — el ecosistema empuja hacia ActiveRecord y Eloquent en todas las capas. La decisión de separar Domain, Application e Infrastructure aquí tiene sentido porque el dominio de ayudas sociales tiene suficiente lógica propia (tipos de ayuda, estados, validaciones de negocio) como para que la separación no sea arquitectura por arquitectura.
 
 ---
 
 ## Credenciales de demo
 
-Email: demo@tutramitefacil.com
-Contraseña: demo1234
+> **Email:** `demo@tutramitefacil.com`
+> **Contraseña:** `demo1234`
 
 ---
 
@@ -25,11 +27,13 @@ Contraseña: demo1234
 
 - Docker y Docker Compose instalados
 - Git
-- Node.js 18+ (solo para desarrollo local del frontend)
+- Node.js 18+ (solo si quieres desarrollar el frontend localmente sin Docker)
 
 ---
 
 ## Levantar el proyecto
+
+Para tenerlo funcionando desde cero, ejecuta estos pasos en orden:
 
 ```bash
 # 1. Clona el repositorio
@@ -58,19 +62,19 @@ docker compose exec app php artisan migrate --seed
 docker compose exec app php artisan l5-swagger:generate
 ```
 
-El backend estará disponible en `http://localhost:8010`
+El backend quedará disponible en `http://localhost:8010`.
 
 ---
 
 ## Frontend (desarrollo local)
 
-```bash o cmd
+```bash
 cd frontend
 npm install
 npm run dev
 ```
 
-El frontend estará disponible en `http://localhost:5173`
+El frontend quedará disponible en `http://localhost:5173`.
 
 ---
 
@@ -98,22 +102,22 @@ docker compose exec app php artisan migrate:fresh --seed
 docker compose exec app php artisan db:seed
 ```
 
-Los seeders crean: **15 solicitantes** con nombres y comunidades autónomas reales en español, y entre **1-4 solicitudes** por solicitante con tipos de ayuda y estados variados.
+Los seeders crean **15 solicitantes** con nombres y comunidades autónomas reales en español, y entre **1–4 solicitudes** por solicitante con tipos de ayuda y estados variados.
 
 ---
 
 ## Tests
 
 ```bash
-# Correr todos los tests de backend (Pest)
+# Todos los tests de backend (Pest)
 docker compose exec app ./vendor/bin/pest
 
-# Correr un archivo de tests específico
+# Un archivo concreto
 docker compose exec app ./vendor/bin/pest tests/Feature/AuthTest.php
 docker compose exec app ./vendor/bin/pest tests/Feature/SolicitanteTest.php
 docker compose exec app ./vendor/bin/pest tests/Feature/SolicitudTest.php
 
-# Correr tests del frontend (Vitest)
+# Tests del frontend (Vitest)
 cd frontend
 npm run test
 ```
@@ -175,7 +179,7 @@ curl -s -X DELETE http://localhost:8010/api/solicitantes/<uuid> \
 # Listar todas las solicitudes (público)
 curl -s http://localhost:8010/api/solicitudes
 
-# Crear una solicitud (requiere token, encola ProcesarSolicitudJob en Horizon)
+# Crear una solicitud (requiere token; encola ProcesarSolicitudJob en Horizon)
 curl -s -X POST http://localhost:8010/api/solicitudes \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer <token>" \
@@ -186,7 +190,7 @@ curl -s -X POST http://localhost:8010/api/solicitudes \
     "importe_estimado": 500.00
   }'
 
-# Cambiar estado de una solicitud (encola Job si el estado cambia)
+# Cambiar el estado de una solicitud (encola Job si el estado cambia)
 curl -s -X PUT http://localhost:8010/api/solicitudes/<uuid> \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer <token>" \
@@ -196,17 +200,83 @@ curl -s -X PUT http://localhost:8010/api/solicitudes/<uuid> \
 ---
 
 ## Arquitectura DDD
+
+El backend está organizado por dominios, no por tipo de archivo. Cada dominio tiene su propia pila de tres capas:
+
+```
+app/
+├── Auth/
+│   └── Presentation/Controllers/
+│       └── AuthController.php              # Login, registro, logout (JWT)
+│
+├── Solicitantes/
+│   ├── Domain/
+│   │   ├── Entities/
+│   │   │   └── Solicitante.php             # PHP puro: sin Eloquent, sin Laravel
+│   │   └── Repositories/
+│   │       └── SolicitanteRepositoryInterface.php  # Define QUÉ, no el CÓMO
+│   ├── Application/
+│   │   └── Services/
+│   │       └── SolicitanteService.php      # Orquesta los casos de uso
+│   ├── Infrastructure/
+│   │   └── Persistence/
+│   │       ├── EloquentSolicitante.php     # Modelo Eloquent (solo existe aquí)
+│   │       └── EloquentSolicitanteRepository.php  # Implementa la interfaz de Domain
+│   └── Presentation/
+│       ├── Controllers/SolicitanteController.php
+│       ├── Requests/                       # Validación de entrada HTTP
+│       └── Resources/SolicitanteResource.php  # Formato de salida JSON
+│
+├── Solicitudes/
+│   ├── Domain/
+│   │   ├── Entities/Solicitud.php
+│   │   ├── Enums/
+│   │   │   ├── Estado.php                  # Pendiente | EnRevision | Concedida | Denegada
+│   │   │   └── TipoAyuda.php               # Alquiler | ChequeBebe | IMV | BonoCultural
+│   │   └── Repositories/SolicitudRepositoryInterface.php
+│   ├── Application/Services/SolicitudService.php
+│   ├── Infrastructure/
+│   │   ├── Jobs/
+│   │   │   └── ProcesarSolicitudJob.php    # Se encola en Redis al crear/cambiar estado
+│   │   └── Persistence/
+│   │       ├── EloquentSolicitud.php
+│   │       └── EloquentSolicitudRepository.php
+│   └── Presentation/
+│       ├── Controllers/SolicitudController.php
+│       ├── Requests/
+│       └── Resources/SolicitudResource.php
+│
+└── Providers/
+    └── AppServiceProvider.php              # Vincula interfaces → implementaciones (IoC)
+```
+
+La regla de dependencia va en una sola dirección: **Presentation → Application → Domain**. Infrastructure implementa los contratos que define Domain, pero nunca al revés. El binding entre interfaz e implementación ocurre en `AppServiceProvider` — es el único sitio donde Laravel sabe que cuando alguien pide `SolicitudRepositoryInterface`, debe entregar `EloquentSolicitudRepository`.
+
+---
+
+## Decisiones técnicas
+
+- **`php-open-source-saver/jwt-auth` en vez de Sanctum:** Sanctum está pensado para SPAs del mismo dominio usando cookies de sesión. Esta API puede ser consumida desde clientes externos, así que el enfoque stateless con JWT tiene más sentido. Los tokens viajan en el header `Authorization: Bearer` en cada petición, sin estado en el servidor.
+
+- **Zustand en vez de Redux:** Redux añade demasiado boilerplate para lo que necesita este frontend. El store de autenticación cabe en 30 líneas y hace exactamente lo que se necesita: guardar el token en localStorage, exponerlo al interceptor de Axios y mantener `isAuthenticated` actualizado para que los componentes reaccionen al login/logout.
+
+- **Los Jobs reciben datos primitivos, no la Entity:** Los Jobs se serializan en Redis para ser procesados de forma asíncrona por Horizon. Si se pasara la Entity de Domain directamente (con enums PHP, `DateTimeImmutable`, etc.), la serialización/deserialización podría fallar o producir un objeto en estado inconsistente al rehidratarse. Pasar strings simples es más predecible.
+
+- **Los enums viven en Domain, no en Infrastructure:** `Estado` y `TipoAyuda` son conceptos de negocio, no detalles de implementación. Que la base de datos los almacene como `string` es una decisión de Infrastructure; que existan los valores `Concedida` o `Denegada` es una regla del dominio. El repositorio los convierte con `Estado::from()` al leer de BD — y si la BD tuviera un valor inválido, `from()` lanzaría un `ValueError` actuando como validación de integridad gratuita.
+
+- **UUID como clave primaria en vez de bigint autoincremental:** Los UUIDs permiten generar IDs en cualquier capa sin round-trip a la base de datos. También evitan exponer información sobre el volumen de registros (un `id=42` revela cuántos solicitantes hay; un UUID no revela nada).
+
 ---
 
 ## Procesamiento asíncrono (Horizon)
 
-Al crear una solicitud o cambiar su estado, se encola automáticamente un `ProcesarSolicitudJob` procesado por el worker de Horizon. El dashboard de Horizon está disponible en `http://localhost:8010/horizon`.
+Al crear una solicitud o cambiar su estado, se encola automáticamente un `ProcesarSolicitudJob` que Horizon procesa en segundo plano. En producción ese Job enviaría un email al solicitante y haría la verificación con los sistemas de la administración; en este proyecto logea la acción y simula el trabajo con un `sleep(1)` para que puedas ver el Job aparecer y completarse en el dashboard de Horizon (`http://localhost:8010/horizon`).
 
 ---
 
 ## Git Flow
 
-El proyecto usa Git Flow con ramas `main`, `develop`, y `feature/*`.
+El proyecto usa Git Flow con ramas `main`, `develop` y `feature/*`.
 
 ---
 

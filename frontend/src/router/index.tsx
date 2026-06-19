@@ -11,7 +11,7 @@ const withLayout = (element: React.ReactNode) => <Layout>{element}</Layout>;
 
 export const router = createBrowserRouter([
   { path: '/', element: withLayout(<SolicitantesListPage />) },
-  { path: '/login', element: withLayout(<LoginPage />) },
+  { path: '/login', element: <LoginPage /> },
   {
     path: '/solicitantes/nuevo',
     element: withLayout(<ProtectedRoute><SolicitanteFormPage /></ProtectedRoute>),

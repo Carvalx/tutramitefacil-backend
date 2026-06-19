@@ -7,6 +7,7 @@ import Card from '../components/common/Card';
 import Badge from '../components/common/Badge';
 import Button from '../components/common/Button';
 import KebabMenu from '../components/common/KebabMenu';
+import ConfirmModal from '../components/common/ConfirmModal';
 
 function SolicitanteDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -14,6 +15,7 @@ function SolicitanteDetailPage() {
   const [solicitudes, setSolicitudes] = useState<Solicitud[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -31,15 +33,20 @@ function SolicitanteDetailPage() {
       .finally(() => setLoading(false));
   }, [id]);
 
-  const handleEliminarSolicitud = async (solicitudId: string) => {
-    const confirmado = window.confirm('¿Eliminar esta solicitud? Esta acción no se puede deshacer.');
-    if (!confirmado) return;
+  const handleEliminarSolicitud = (solicitudId: string) => {
+    setPendingDeleteId(solicitudId);
+  };
+
+  const confirmEliminarSolicitud = async () => {
+    if (!pendingDeleteId) return;
 
     try {
-      await solicitudesApi.eliminar(solicitudId);
-      setSolicitudes((prev) => prev.filter((s) => s.id !== solicitudId));
+      await solicitudesApi.eliminar(pendingDeleteId);
+      setSolicitudes((prev) => prev.filter((s) => s.id !== pendingDeleteId));
     } catch {
       alert('No se pudo eliminar. Asegúrate de haber iniciado sesión.');
+    } finally {
+      setPendingDeleteId(null);
     }
   };
 
@@ -106,6 +113,14 @@ function SolicitanteDetailPage() {
           ))}
         </div>
       )}
+
+      <ConfirmModal
+        isOpen={pendingDeleteId !== null}
+        title="¿Estás seguro?"
+        message="Vas a eliminar esta solicitud. Esta acción no se puede deshacer."
+        onConfirm={confirmEliminarSolicitud}
+        onCancel={() => setPendingDeleteId(null)}
+      />
     </div>
   );
 }

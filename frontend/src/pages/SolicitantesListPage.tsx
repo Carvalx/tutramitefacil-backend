@@ -5,12 +5,14 @@ import type { Solicitante } from '../types';
 import Card from '../components/common/Card';
 import Button from '../components/common/Button';
 import KebabMenu from '../components/common/KebabMenu';
+import ConfirmModal from '../components/common/ConfirmModal';
 
 function SolicitantesListPage() {
   const [solicitantes, setSolicitantes] = useState<Solicitante[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [busqueda, setBusqueda] = useState('');
+  const [pendingDelete, setPendingDelete] = useState<{ id: string; nombre: string } | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -21,15 +23,20 @@ function SolicitantesListPage() {
       .finally(() => setLoading(false));
   }, []);
 
-  const handleEliminar = async (id: string, nombre: string) => {
-    const confirmado = window.confirm(`¿Eliminar a ${nombre}? Esta acción no se puede deshacer.`);
-    if (!confirmado) return;
+  const handleEliminar = (id: string, nombre: string) => {
+    setPendingDelete({ id, nombre });
+  };
+
+  const confirmEliminar = async () => {
+    if (!pendingDelete) return;
 
     try {
-      await solicitantesApi.eliminar(id);
-      setSolicitantes((prev) => prev.filter((s) => s.id !== id));
+      await solicitantesApi.eliminar(pendingDelete.id);
+      setSolicitantes((prev) => prev.filter((s) => s.id !== pendingDelete.id));
     } catch {
       alert('No se pudo eliminar. Asegúrate de haber iniciado sesión.');
+    } finally {
+      setPendingDelete(null);
     }
   };
 
@@ -84,6 +91,14 @@ function SolicitantesListPage() {
       {solicitantesFiltrados.length === 0 && (
         <p className="text-gray-500 mt-4">No se encontraron solicitantes.</p>
       )}
+
+      <ConfirmModal
+        isOpen={pendingDelete !== null}
+        title="¿Estás seguro?"
+        message={`Vas a eliminar a ${pendingDelete?.nombre}. Esta acción no se puede deshacer.`}
+        onConfirm={confirmEliminar}
+        onCancel={() => setPendingDelete(null)}
+      />
     </div>
   );
 }

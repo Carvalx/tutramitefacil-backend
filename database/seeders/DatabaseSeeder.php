@@ -9,7 +9,7 @@ class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
-        // Usuario de demostración para el evaluador
+        // Usuario para poder acceder
         User::firstOrCreate(
             ['email' => 'demo@tutramitefacil.com'],
             [
