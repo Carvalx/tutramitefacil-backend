@@ -38,7 +38,7 @@ function LoginPage() {
       <div className="hidden md:flex md:w-2/5 bg-tf-navy flex-col justify-center px-12">
         <div className="mb-10">
           <div className="w-14 h-14 rounded-2xl bg-tf-teal flex items-center justify-center mb-5">
-            <span className="text-tf-navy font-black text-xl tracking-tight">tf</span>
+            <span className="text-white font-bold text-base tracking-tight">ttf</span>
           </div>
           <h1 className="text-white font-bold text-2xl leading-tight">TuTrámiteFácil</h1>
         </div>

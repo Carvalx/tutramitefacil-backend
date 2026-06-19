@@ -26,11 +26,11 @@ function Layout({ children }: LayoutProps) {
     <div className="min-h-screen bg-gray-50">
       <header className="bg-white border-b border-gray-100 px-6 py-4 flex justify-between items-center">
         <Link to="/" className="flex items-center gap-2">
-          <span className="bg-tf-teal text-white font-bold w-8 h-8 rounded-lg flex items-center justify-center text-sm">
-            tf
+          <span className="bg-tf-teal text-white font-bold w-8 h-8 rounded-lg flex items-center justify-center text-base">
+            ttf
           </span>
           <span className="font-bold text-tf-navy">
-            Tu<span className="text-tf-purple">Trámite</span>Fácil
+            TuTrámiteFácil
           </span>
         </Link>
 
