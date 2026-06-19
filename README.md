@@ -1,86 +1,149 @@
-# TuTrámiteFácil — Backend
+# TuTramiteFacil — Prueba Técnica
 
-API REST para la gestión de solicitudes de ayudas gubernamentales, construida con Laravel 11 (PHP 8.4) y arquitectura limpia por dominio (DDD).
+API REST + SPA React para gestión de solicitantes y solicitudes de ayudas sociales, desarrollada con **Laravel 11 (DDD + Clean Architecture)** y **React + Vite + TypeScript + Tailwind v4**.
 
-## Requisitos
+---
+
+## Credenciales de demo
+
+> **Email:** demo@tutramitefacil.com  
+> **Contraseña:** demo1234
+
+---
+
+## Stack
+
+**Backend:** Laravel 11, PHP 8.4, MySQL 8, Redis, Laravel Horizon, JWT (`php-open-source-saver/jwt-auth`), Swagger/OpenAPI (`l5-swagger`), Pest
+
+**Frontend:** React 19, Vite 8, TypeScript, Tailwind CSS v4, Zustand, React Router, Axios
+
+**Infraestructura:** Docker Compose (5 servicios: app, nginx, mysql, redis, horizon)
+
+---
+
+## Requisitos previos
 
 - Docker y Docker Compose
-- (Opcional, sin Docker) PHP 8.4 + Composer + MySQL 8
+- Node.js 18+
+- Git
 
-## Puesta en marcha
+---
+
+## Levantar el proyecto
 
 ```bash
-# 1. Copiar variables de entorno
+git clone https://github.com/Carvalx/tutramitefacil-backend.git
+cd tutramitefacil-backend
 cp .env.example .env
-
-# 2. Levantar los contenedores
-docker compose up -d
-
-# 3. Ejecutar migraciones
-docker compose exec app php artisan migrate
+docker compose up -d --build
+docker compose exec app composer install
+docker compose exec app php artisan key:generate
+docker compose exec app php artisan jwt:secret
+docker compose exec app php artisan migrate --seed
+docker compose exec app php artisan l5-swagger:generate
 ```
 
-La API queda disponible en `http://localhost:8010/api/`.
+## Frontend
 
-## Comandos habituales
+```bash
+cd frontend
+npm install
+npm run dev
+```
 
-| Tarea | Comando |
+---
+
+## URLs disponibles
+
+| Servicio | URL |
 |---|---|
-| Levantar servicios | `docker compose up -d` |
-| Migrar | `docker compose exec app php artisan migrate` |
-| Resetear BD | `docker compose exec app php artisan migrate:fresh` |
-| Ejecutar tests | `docker compose exec app php artisan test` |
-| Un solo test | `docker compose exec app php artisan test --filter=NombreTest` |
-| REPL | `docker compose exec app php artisan tinker` |
-| Formatear código | `docker compose exec app ./vendor/bin/pint` |
-| Verificar formato | `docker compose exec app ./vendor/bin/pint --test` |
+| API REST | http://localhost:8010/api |
+| Swagger UI | http://localhost:8010/api/documentation |
+| Horizon Dashboard | http://localhost:8010/horizon |
+| Frontend React | http://localhost:5173 |
 
-## Estructura del proyecto
+---
 
-La aplicación está organizada por dominios bajo `app/`. Cada dominio sigue una arquitectura limpia de 3 capas:
+## Migraciones y seeders
 
-```
-app/{Dominio}/
-├── Domain/
-│   ├── Entities/       # Clases PHP puras — sin Eloquent ni Laravel
-│   ├── Enums/          # Enums de PHP 8.1 (objetos de valor)
-│   └── Repositories/   # Solo interfaces — definen QUÉ, no CÓMO
-├── Application/
-│   └── Services/       # Orquestación de casos de uso
-└── Presentation/
-    ├── Controllers/    # Finos: validar → llamar servicio → devolver recurso
-    ├── Requests/       # Validación con Form Requests de Laravel
-    └── Resources/      # Formato de respuesta (JsonResource)
+```bash
+# Migraciones pendientes
+docker compose exec app php artisan migrate
+
+# Reset completo + seeders
+docker compose exec app php artisan migrate:fresh --seed
+
+# Solo seeders
+docker compose exec app php artisan db:seed
 ```
 
-Dominios actuales: `Solicitantes` y `Solicitudes`.
+Los seeders crean 15 solicitantes con datos reales en español y entre 1-4 solicitudes por solicitante, además del usuario de demo.
 
-La infraestructura (modelos Eloquent y repositorios concretos) vive en `app/{Dominio}/Infrastructure/Persistence/`.
-
-## Infraestructura Docker
-
-| Servicio | Descripción | Puerto externo |
-|---|---|---|
-| `app` | PHP-FPM 8.4 | — |
-| `nginx` | Servidor web | 8010 |
-| `mysql` | MySQL 8 | 3307 |
-| `redis` | Caché y colas | 6379 |
-
-## Convenciones clave
-
-- **UUIDs como PK** en todos los modelos de dominio.
-- **Enums PHP** (`TipoAyuda`, `Estado`) para valores de dominio.
-- **Sin Eloquent en el dominio**: las entidades son clases PHP puras e inmutables.
-- **Rutas**: `routes/api.php` con `Route::apiResource()`. Actualmente públicas; se añadirá middleware JWT (`auth:api`) en rutas de escritura al implementar autenticación.
+---
 
 ## Tests
 
-Los tests requieren el contenedor de MySQL activo. SQLite está desactivado en `phpunit.xml` por diseño.
-
 ```bash
-docker compose exec app php artisan test
+# Backend (Pest)
+docker compose exec app ./vendor/bin/pest
+
+# Frontend (Vitest)
+cd frontend && npm run test
 ```
 
-## Licencia
+---
 
-MIT
+## Ejemplos de llamadas a la API
+
+```bash
+# Login
+curl -s -X POST http://localhost:8010/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"demo@tutramitefacil.com","password":"demo1234"}'
+
+# Listar solicitantes (público)
+curl -s http://localhost:8010/api/solicitantes
+
+# Crear solicitante (requiere token)
+curl -s -X POST http://localhost:8010/api/solicitantes \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer <token>" \
+  -d '{"nombre":"Carlos","apellidos":"Macero","email":"carlos@example.com","telefono":"600000000","comunidad_autonoma":"Comunidad Valenciana","fecha_registro":"2026-06-15"}'
+
+# Crear solicitud (encola ProcesarSolicitudJob en Horizon)
+curl -s -X POST http://localhost:8010/api/solicitudes \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer <token>" \
+  -d '{"solicitante_id":"<uuid>","tipo_ayuda":"Alquiler","fecha_solicitud":"2026-06-15","importe_estimado":500}'
+```
+
+---
+
+## Arquitectura DDD
+
+---
+
+## Decisiones técnicas
+
+- **`php-open-source-saver/jwt-auth` en vez de Sanctum** — Sanctum está orientado a SPA con cookies de sesión. JWT es stateless y más apropiado para una API pura consumida por cualquier cliente.
+- **Zustand en vez de Redux Toolkit** — Redux añade demasiado boilerplate para el alcance de esta prueba. Zustand cubre el mismo caso de uso con mucho menos código.
+- **Jobs con datos primitivos, no Entities** — los Jobs se serializan en Redis. Las Entities de dominio (con enums PHP, etc.) pueden no deserializar limpiamente, así que se pasan solo strings y numbers.
+- **Enums en Domain, no en Infrastructure** — `TipoAyuda` y `Estado` son conceptos de negocio, no de persistencia. Eloquent los castea, pero su definición pertenece al dominio.
+
+---
+
+## Procesamiento asíncrono (Horizon)
+
+Al crear una solicitud o cambiar su estado, se encola automáticamente un `ProcesarSolicitudJob` procesado por el worker de Horizon. Dashboard: `http://localhost:8010/horizon`.
+
+---
+
+## CI/CD
+
+GitHub Actions ejecuta automáticamente los tests de Pest y Vitest en cada push a `develop` o `main`.
+
+---
+
+## Git Flow
+
+Ramas: `main`, `develop`, `feature/*`.
